@@ -24,12 +24,11 @@ public class ProductSupply {
     private Long stockQuantity;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "supply_id")
     Supply supply;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "product_id")
     Product product;
 

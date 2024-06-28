@@ -49,6 +49,7 @@ public class OrderController {
         orderDB.setOrderDate(new Date());
         orderDB.setStatus(Status.DRAFT);
         orderDB.setTotalPrice(0.0f);
+        orderDB.setCustomer(orderDTO.getCustomer());
         Order savedOrder = orderRepository.save(orderDB);
         List<Product> products = orderDTO.getProducts();
         List<ProductOrder> productOrders = products.stream().map(product -> {

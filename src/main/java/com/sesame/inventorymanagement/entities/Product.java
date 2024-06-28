@@ -24,13 +24,11 @@ public class Product {
     @Column(name = "stockQuantity")
     private Long stockQuantity;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductOrder> productOrders;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "product")
-    List<ProductSupply> productSupplies;
+    private List<ProductSupply> productSupplies;
 
     public Product() {
     }
@@ -67,19 +65,22 @@ public class Product {
         this.stockQuantity = stockQuantity;
     }
 
-    public List<ProductOrder> getOrders() {
+    @JsonIgnore
+    public List<ProductOrder> getProductOrders() {
         return productOrders;
     }
 
-    public void setOrders(List<ProductOrder> productOrders) {
+    public void setProductOrders(List<ProductOrder> productOrders) {
         this.productOrders = productOrders;
     }
 
-    public List<ProductSupply> getSupplies() {
+    @JsonIgnore
+    public List<ProductSupply> getProductSupplies() {
         return productSupplies;
     }
 
-    public void setSupplies(List<ProductSupply> productSupplies) {
+    public void setProductSupplies(List<ProductSupply> productSupplies) {
         this.productSupplies = productSupplies;
     }
+
 }
