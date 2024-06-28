@@ -25,8 +25,8 @@ public class Product {
     private Long stockQuantity;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "products")
-    List<Order> orders;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ProductOrder> productOrders;
 
     @JsonIgnore
     @OneToMany(mappedBy = "product")
@@ -67,12 +67,12 @@ public class Product {
         this.stockQuantity = stockQuantity;
     }
 
-    public List<Order> getOrders() {
-        return orders;
+    public List<ProductOrder> getOrders() {
+        return productOrders;
     }
 
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
+    public void setOrders(List<ProductOrder> productOrders) {
+        this.productOrders = productOrders;
     }
 
     public List<ProductSupply> getSupplies() {
