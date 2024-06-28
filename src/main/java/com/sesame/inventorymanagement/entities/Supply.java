@@ -1,6 +1,9 @@
 package com.sesame.inventorymanagement.entities;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Date;
 // import java.util.List;
 import java.util.List;
@@ -20,9 +23,8 @@ public class Supply {
     @Column(name = "status")
     public Status status;
 
-    @ManyToMany
-    @JoinTable(name = "supply_product", joinColumns = @JoinColumn(name = "supply_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
-    private List<Product> products;
+    @OneToMany(mappedBy = "supply", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    List<ProductSupply> productSupplies;
 
     public Supply() {
     }
@@ -60,12 +62,12 @@ public class Supply {
         this.supplyDate = supplyDate;
     }
 
-    public List<Product> getProducts() {
-        return products;
+    public List<ProductSupply> getProductSupplies() {
+        return productSupplies;
     }
 
-    public void setProducts(List<Product> products) {
-        this.products = products;
+    public void setProductSupplies(List<ProductSupply> productSupplies) {
+        this.productSupplies = productSupplies;
     }
 
 }

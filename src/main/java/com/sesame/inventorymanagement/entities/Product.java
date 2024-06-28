@@ -29,8 +29,8 @@ public class Product {
     List<Order> orders;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "products")
-    List<Supply> supplies;
+    @OneToMany(mappedBy = "product")
+    List<ProductSupply> productSupplies;
 
     public Product() {
     }
@@ -75,11 +75,11 @@ public class Product {
         this.orders = orders;
     }
 
-    public List<Supply> getSupplies() {
-        return supplies;
+    public List<ProductSupply> getSupplies() {
+        return productSupplies;
     }
 
-    public void setSupplies(List<Supply> supplies) {
-        this.supplies = supplies;
+    public void setSupplies(List<ProductSupply> productSupplies) {
+        this.productSupplies = productSupplies;
     }
 }
