@@ -26,9 +26,8 @@ public class Order {
     @JoinColumn(name = "customer_id")
     private Customer customer;
 
-    @ManyToMany
-    @JoinTable(name = "order_product", joinColumns = @JoinColumn(name = "orders_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
-    private List<Product> products;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    List<ProductOrder> productOrders;
 
     public Order() {
     }
@@ -82,12 +81,12 @@ public class Order {
         this.status = status;
     }
 
-    public List<Product> getProducts() {
-        return products;
+    public List<ProductOrder> getProductOrders() {
+        return productOrders;
     }
 
-    public void setProducts(List<Product> products) {
-        this.products = products;
+    public void setProductOrders(List<ProductOrder> productOrders) {
+        this.productOrders = productOrders;
     }
 
 }

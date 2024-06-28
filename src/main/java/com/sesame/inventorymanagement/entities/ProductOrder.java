@@ -12,35 +12,35 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "product_supply")
-public class ProductSupply {
+@Table(name = "product_order")
+public class ProductOrder {
 
     @Id
     @GeneratedValue
-    @Column(name = "product_supply_id")
-    private Long productSupplyId;
+    @Column(name = "product_order_id")
+    private Long productorderId;
 
     @Column(name = "stockQuantity")
     private Long stockQuantity;
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "supply_id")
-    Supply supply;
+    @JoinColumn(name = "order_id")
+    Order order;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
     Product product;
 
-    public ProductSupply() {
+    public ProductOrder() {
     }
 
-    public Long getProductSupplyId() {
-        return productSupplyId;
+    public Long getProductOrderId() {
+        return productorderId;
     }
 
-    public void setProductSupplyId(Long productSupplyId) {
-        this.productSupplyId = productSupplyId;
+    public void setProductOrderId(Long productorderId) {
+        this.productorderId = productorderId;
     }
 
     public Long getStockQuantity() {
@@ -51,19 +51,19 @@ public class ProductSupply {
         this.stockQuantity = stockQuantity;
     }
 
-    public Supply getSupply() {
-        return supply;
+    public Order getOrder() {
+        return order;
     }
 
-    public void setSupply(Supply supply) {
-        this.supply = supply;
+    public void setOrder(Order order) {
+        this.order = order;
     }
 
     public Product getProduct() {
         return product;
     }
 
-    public void setproduct(Product product) {
+    public void setProduct(Product product) {
         this.product = product;
     }
 

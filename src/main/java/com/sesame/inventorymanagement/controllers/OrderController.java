@@ -2,8 +2,11 @@ package com.sesame.inventorymanagement.controllers;
 
 import com.sesame.inventorymanagement.entities.Order;
 import com.sesame.inventorymanagement.entities.Product;
+import com.sesame.inventorymanagement.entities.ProductOrder;
 import com.sesame.inventorymanagement.entities.Status;
+import com.sesame.inventorymanagement.entities.DTO.OrderDTO;
 import com.sesame.inventorymanagement.repositories.OrderRepository;
+import com.sesame.inventorymanagement.repositories.ProductOrderRepository;
 import com.sesame.inventorymanagement.repositories.ProductRepository;
 import com.sesame.inventorymanagement.utils.NotFoundException;
 
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders")
@@ -23,6 +27,9 @@ public class OrderController {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductOrderRepository productOrderRepository;
 
     @GetMapping
     public List<Order> getAllOrders() {
@@ -37,34 +44,30 @@ public class OrderController {
     }
 
     @PostMapping
-    public Order createOrder(@RequestBody Order order) {
-        float totalPrice = 0.0f;
-        for (Product product : order.getProducts()) {
-            // Fetch product from database
+    public Order createOrder(@RequestBody OrderDTO orderDTO) {
+        Order orderDB = new Order();
+        orderDB.setOrderDate(new Date());
+        orderDB.setStatus(Status.DRAFT);
+        orderDB.setTotalPrice(0.0f);
+        orderDB.setCustomer(orderDTO.getCustomer());
+        Order savedOrder = orderRepository.save(orderDB);
+        List<Product> products = orderDTO.getProducts();
+        List<ProductOrder> productOrders = products.stream().map(product -> {
+            ProductOrder productOrder = new ProductOrder();
+            productOrder.setOrder(savedOrder);
+            productOrder.setProduct(product);
             Product productDB = productRepository.findById(product.getProductId())
                     .orElseThrow(() -> new NotFoundException("Product not found with id: " + product.getProductId()));
-    
-            // Update product stock quantity
             long orderedQuantity = product.getStockQuantity();
             productDB.setStockQuantity(productDB.getStockQuantity() - orderedQuantity);
-    
-            // Calculate product total price and accumulate total order price
-            totalPrice += productDB.getPrice() * orderedQuantity;
-    
-            // Save updated product
+            productOrder.setStockQuantity(orderedQuantity);
+            savedOrder.setTotalPrice(savedOrder.getTotalPrice() + productDB.getPrice() * orderedQuantity);
             productRepository.save(productDB);
-        }
-        // order.getProducts().stream().map(product -> {
-        //     Product productDB = productRepository.findById(product.getProductId())
-        //             .orElseThrow(() -> new NotFoundException());
-        //     productDB.setStockQuantity(productDB.getStockQuantity() - product.getStockQuantity());
-        //     order.setTotalPrice(order.getTotalPrice() + productDB.getPrice() * product.getStockQuantity());
-        //     return productRepository.save(productDB);
-        // });
-        order.setTotalPrice(totalPrice);
-        order.setOrderDate(new Date());
-        order.setStatus(Status.DRAFT);
-        return orderRepository.save(order);
+            return productOrder;
+        }).collect(Collectors.toList());
+        savedOrder.setProductOrders(productOrders);
+        productOrderRepository.saveAll(productOrders);
+        return orderRepository.save(savedOrder);
     }
 
     @PutMapping("/{id}")
@@ -93,8 +96,18 @@ public class OrderController {
         return orderRepository.findById(orderId)
                 .map(order -> productRepository.findById(productId)
                         .map(product -> {
-                            order.getProducts().add(product);
-                            return ResponseEntity.ok(orderRepository.save(order));
+                            boolean productAlreadyInOrder = order.getProductOrders().stream()
+                                    .anyMatch(po -> po.getProduct().getProductId().equals(productId));
+                            if (!productAlreadyInOrder) {
+                                ProductOrder productOrder = new ProductOrder();
+                                productOrder.setOrder(order);
+                                productOrder.setProduct(product);
+                                productOrder.setStockQuantity(1L); // thiiisssss
+                                order.getProductOrders().add(productOrder);
+                                productOrderRepository.save(productOrder);
+                            }
+                            Order updatedOrder = orderRepository.save(order);
+                            return ResponseEntity.ok(updatedOrder);
                         })
                         .orElse(ResponseEntity.notFound().build()))
                 .orElse(ResponseEntity.notFound().build());
@@ -103,12 +116,20 @@ public class OrderController {
     @DeleteMapping("/{orderId}/products/{productId}")
     public ResponseEntity<Order> removeProductFromOrder(@PathVariable Long orderId, @PathVariable Long productId) {
         return orderRepository.findById(orderId)
-                .map(order -> productRepository.findById(productId)
-                        .map(product -> {
-                            order.getProducts().remove(product);
-                            return ResponseEntity.ok(orderRepository.save(order));
-                        })
-                        .orElse(ResponseEntity.notFound().build()))
+                .map(order -> {
+                    ProductOrder productOrderToRemove = order.getProductOrders().stream()
+                            .filter(po -> po.getProduct().getProductId().equals(productId))
+                            .findFirst()
+                            .orElseThrow(
+                                    () -> new NotFoundException("ProductOrder not found for productId: " + productId));
+                    order.getProductOrders().remove(productOrderToRemove);
+                    Product product = productOrderToRemove.getProduct();
+                    product.setStockQuantity(product.getStockQuantity() + productOrderToRemove.getStockQuantity());
+                    productRepository.save(product);
+                    Order updatedOrder = orderRepository.save(order);
+                    return ResponseEntity.ok(updatedOrder);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 }
